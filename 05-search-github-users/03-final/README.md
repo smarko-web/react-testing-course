@@ -1076,3 +1076,84 @@ UserProfile.tsx
 ```tsx
 if (loading) return <Loading />;
 ```
+
+## Testing
+
+Add RTL and Vitest to the project, please reference corresponding course Section.
+
+### Stats Card Test Challenge
+
+- 🎯 **Challenge: Create Tests for StatsCard Component**
+
+- 📁 Create a new directory named `__tests__` inside `src/components/user/`
+
+- 📄 Inside the `__tests__` directory, create a new file named `StatsCard.test.tsx`
+
+- 📦 Required imports to add at the top of the file:
+
+  - `import { render, screen } from '@testing-library/react'`
+  - `import StatsCard from '@/components/user/StatsCard'`;
+
+- 🧪 Write test cases:
+
+  1. Create a test for basic rendering:
+
+     - Render StatsCard with a title "Total Users" and count 42
+     - Verify both text elements are in the document
+
+  2. Create a test for zero values:
+
+     - Render StatsCard with a title "Active Sessions" and count 0
+     - Verify both text elements are in the document
+
+  3. Create a test for large numbers:
+     - Render StatsCard with a title "Total Views" and count 1000000
+     - Verify both text elements are in the document
+
+- 🏃‍♂️ Run the tests:
+
+  - Execute `npm test` or `yarn test` in your terminal
+  - Ensure all tests pass
+  - Check test coverage if needed
+
+- 🎉 Bonus challenges:
+  - Add a test for very long titles
+  - Test with negative numbers (if your component should handle them)
+
+### Utils Test
+
+### Stats Card Test
+
+`src/__tests__/StatsCard.test.tsx`
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import StatsCard from '@/components/user/StatsCard';
+
+describe('StatsCard', () => {
+  test('renders title and count correctly', () => {
+    render(<StatsCard title='Total Users' count={42} />);
+
+    expect(screen.getByText('Total Users')).toBeInTheDocument();
+    expect(screen.getByText('42')).toBeInTheDocument();
+  });
+
+  test('renders with zero count', () => {
+    render(<StatsCard title='Active Sessions' count={0} />);
+
+    expect(screen.getByText('Active Sessions')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
+  test('renders with large numbers', () => {
+    render(<StatsCard title='Total Views' count={1000000} />);
+
+    expect(screen.getByText('Total Views')).toBeInTheDocument();
+    expect(screen.getByText('1000000')).toBeInTheDocument();
+  });
+});
+```
+
+### Stats Container Test
+
+### User Card Test
