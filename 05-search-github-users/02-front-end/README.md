@@ -1076,3 +1076,1089 @@ UserProfile.tsx
 ```tsx
 if (loading) return <Loading />;
 ```
+
+## Testing
+
+Add RTL, Vitest and MSW to the project, please reference corresponding course sections.
+
+- 📁 Create a new directory named `src/__tests__`
+
+### Utils Test Challenge
+
+- Create a new file named `utils.ts` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import Repository type from '../types'
+  - Import utility functions (calculateMostForkedRepos, calculateMostStarredRepos, calculatePopularLanguages) from '../utils'
+
+- Create mock data (mockRepositories array):
+
+  - Create 3 repository objects with different values
+  - Each repo should have: name, description, stargazerCount, forkCount, url
+  - Include languages object with edges array containing language name and size
+  - Ensure variety in star counts, fork counts, and languages for testing
+
+- Create main describe block for 'repository statistics calculations'
+
+- Create calculateMostForkedRepos test suite:
+
+  - Test empty input returns empty array
+  - Test correct ranking of repositories by fork count
+  - Verify descending order of results
+
+- Create calculateMostStarredRepos test suite:
+
+  - Test empty input returns empty array
+  - Test correct ranking of repositories by star count
+  - Verify descending order of results
+
+- Create calculatePopularLanguages test suite:
+
+  - Test empty input returns empty array
+  - Test repositories with no languages
+  - Test language counting and ranking
+  - Verify accurate language occurrence counting
+
+- Add detailed comments throughout:
+  - Document mock data structure
+  - Explain purpose of each test suite
+  - Label edge cases and main functionality tests
+
+### Utils Test
+
+`src/__tests__/utils.ts`
+
+```tsx
+// Import the Repository type and utility functions being tested
+import { Repository } from '../types';
+import {
+  calculateMostForkedRepos,
+  calculateMostStarredRepos,
+  calculatePopularLanguages,
+} from '../utils';
+
+// Mock data representing a sample array of repository objects
+// Each repository contains basic info like name, description, stars, forks,
+// and a nested languages object with size information
+export const mockRepositories: Repository[] = [
+  {
+    name: 'repo1',
+    description: 'test repo 1',
+    stargazerCount: 1000,
+    forkCount: 500,
+    url: 'https://github.com/test/repo1',
+    languages: {
+      edges: [
+        { node: { name: 'javascript' }, size: 1000 },
+        { node: { name: 'typescript' }, size: 500 },
+      ],
+    },
+  },
+  {
+    name: 'repo2',
+    description: 'test repo 2',
+    stargazerCount: 2000,
+    forkCount: 300,
+    url: 'https://github.com/test/repo2',
+    languages: {
+      edges: [
+        { node: { name: 'python' }, size: 800 },
+        { node: { name: 'javascript' }, size: 400 },
+      ],
+    },
+  },
+  {
+    name: 'repo3',
+    description: 'test repo 3',
+    stargazerCount: 3000,
+    forkCount: 1000,
+    url: 'https://github.com/test/repo3',
+    languages: {
+      edges: [
+        { node: { name: 'typescript' }, size: 1200 },
+        { node: { name: 'python' }, size: 300 },
+      ],
+    },
+  },
+];
+
+describe('repository statistics calculations', () => {
+  // Test suite for calculateMostForkedRepos function
+  describe('calculateMostForkedRepos', () => {
+    // Edge case: Test behavior with empty input
+    test('should return empty array for empty input', () => {
+      const result = calculateMostForkedRepos([]);
+      expect(result).toEqual([]);
+    });
+
+    // Main functionality test: Verify correct ranking of repositories by fork count
+    test('should return top 5 most forked repositories', () => {
+      const result = calculateMostForkedRepos(mockRepositories);
+      expect(result).toEqual([
+        { repo: 'repo3', count: 1000 },
+        { repo: 'repo1', count: 500 },
+        { repo: 'repo2', count: 300 },
+      ]);
+    });
+
+    // Verification test: Ensure proper descending order of fork counts
+    test('should sort repositories by fork count in descending order', () => {
+      const result = calculateMostForkedRepos(mockRepositories);
+      expect(result[0].count).toBeGreaterThanOrEqual(result[1].count);
+      expect(result[1].count).toBeGreaterThanOrEqual(result[2].count);
+    });
+  });
+
+  // Test suite for calculateMostStarredRepos function
+  describe('calculateMostStarredRepos', () => {
+    // Edge case: Test behavior with empty input
+    test('should return empty array for empty input', () => {
+      const result = calculateMostStarredRepos([]);
+      expect(result).toEqual([]);
+    });
+
+    // Main functionality test: Verify correct ranking of repositories by star count
+    test('should return top 5 most starred repositories', () => {
+      const result = calculateMostStarredRepos(mockRepositories);
+      expect(result).toEqual([
+        { repo: 'repo3', stars: 3000 },
+        { repo: 'repo2', stars: 2000 },
+        { repo: 'repo1', stars: 1000 },
+      ]);
+    });
+
+    // Verification test: Ensure proper descending order of star counts
+    test('should sort repositories by star count in descending order', () => {
+      const result = calculateMostStarredRepos(mockRepositories);
+      expect(result[0].stars).toBeGreaterThanOrEqual(result[1].stars);
+      expect(result[1].stars).toBeGreaterThanOrEqual(result[2].stars);
+    });
+  });
+
+  // Test suite for calculatePopularLanguages function
+  describe('calculatePopularLanguages', () => {
+    // Edge case: Test empty input
+    test('should return empty array for empty input', () => {
+      const result = calculatePopularLanguages([]);
+      expect(result).toEqual([]);
+    });
+
+    // Edge case: Test repositories with no languages
+    test('should return empty array when no languages are present', () => {
+      const repoWithNoLanguages: Repository[] = [
+        {
+          ...mockRepositories[0],
+          languages: { edges: [] },
+        },
+      ];
+      const result = calculatePopularLanguages(repoWithNoLanguages);
+      expect(result).toEqual([]);
+    });
+
+    // Main functionality test: Verify language counting and ranking
+    test('should return top 5 most used languages', () => {
+      const result = calculatePopularLanguages(mockRepositories);
+      expect(result).toEqual([
+        { language: 'javascript', count: 2 },
+        { language: 'typescript', count: 2 },
+        { language: 'python', count: 2 },
+      ]);
+    });
+
+    // Specific test for accuracy of language occurrence counting
+    test('should count language occurrences correctly', () => {
+      const result = calculatePopularLanguages(mockRepositories);
+      const jsCount = result.find(
+        (lang) => lang.language === 'javascript'
+      )?.count;
+      expect(jsCount).toBe(2);
+    });
+  });
+});
+```
+
+### Stats Card Test Challenge
+
+- 🎯 **Challenge: Create Tests for StatsCard Component**
+
+- 📄 Inside the `__tests__` directory, create a new file named `StatsCard.test.tsx`
+
+- 📦 Required imports to add at the top of the file:
+
+  - `import { render, screen } from '@testing-library/react'`
+  - `import StatsCard from '@/components/user/StatsCard'`;
+
+- 🧪 Write test cases:
+
+  1. Create a test for basic rendering:
+
+     - Render StatsCard with a title "Total Users" and count 42
+     - Verify both text elements are in the document
+
+  2. Create a test for zero values:
+
+     - Render StatsCard with a title "Active Sessions" and count 0
+     - Verify both text elements are in the document
+
+  3. Create a test for large numbers:
+     - Render StatsCard with a title "Total Views" and count 1000000
+     - Verify both text elements are in the document
+
+### Stats Card Test
+
+`src/__tests__/StatsCard.test.tsx`
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import StatsCard from '@/components/user/StatsCard';
+
+describe('StatsCard', () => {
+  test('renders title and count correctly', () => {
+    render(<StatsCard title='Total Users' count={42} />);
+
+    expect(screen.getByText('Total Users')).toBeInTheDocument();
+    expect(screen.getByText('42')).toBeInTheDocument();
+  });
+
+  test('renders with zero count', () => {
+    render(<StatsCard title='Active Sessions' count={0} />);
+
+    expect(screen.getByText('Active Sessions')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
+  test('renders with large numbers', () => {
+    render(<StatsCard title='Total Views' count={1000000} />);
+
+    expect(screen.getByText('Total Views')).toBeInTheDocument();
+    expect(screen.getByText('1000000')).toBeInTheDocument();
+  });
+});
+```
+
+### Stats Container Test Challenge
+
+- Create a new file named `StatsContainer.test.tsx` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import render and screen from '@testing-library/react'
+  - Import StatsContainer component from '@/components/user/StatsContainer'
+
+- Create main describe block for 'StatsContainer'
+
+- Create mock data for GitHub statistics:
+
+  - totalRepos: 25
+  - followers: 100
+  - following: 50
+  - gists: 10
+
+- Create test case for rendering stats cards:
+
+  - Test name: 'renders all stats cards with correct values'
+  - Render StatsContainer with mock props
+  - Verify repositories card:
+    - Check for 'Total Repositories' text
+    - Check for '25' value
+  - Verify followers card:
+    - Check for 'Followers' text
+    - Check for '100' value
+  - Verify following card:
+    - Check for 'Following' text
+    - Check for '50' value
+  - Verify gists card:
+    - Check for 'Gists' text
+    - Check for '10' value
+
+- Add comments for documentation:
+  - Explain purpose of test file
+  - Document mock data structure
+  - Explain what each verification checks
+
+### Stats Container Test
+
+`src/__tests__/StatsContainer.test.tsx`
+
+```tsx
+// This test file contains unit tests for the StatsContainer component
+// It verifies that the container correctly displays multiple StatsCard components
+// with their respective GitHub statistics
+
+import { render, screen } from '@testing-library/react';
+import StatsContainer from '@/components/user/StatsContainer';
+
+describe('StatsContainer', () => {
+  // Test case: Verify all stats cards are rendered with their correct values
+  test('renders all stats cards with correct values', () => {
+    // Mock data representing a GitHub user's statistics
+    const props = {
+      totalRepos: 25,
+      followers: 100,
+      following: 50,
+      gists: 10,
+    };
+
+    render(<StatsContainer {...props} />);
+
+    // Verify the repositories card displays correctly
+    expect(screen.getByText('Total Repositories')).toBeInTheDocument();
+    expect(screen.getByText('25')).toBeInTheDocument();
+
+    // Verify the followers card displays correctly
+    expect(screen.getByText('Followers')).toBeInTheDocument();
+    expect(screen.getByText('100')).toBeInTheDocument();
+
+    // Verify the following card displays correctly
+    expect(screen.getByText('Following')).toBeInTheDocument();
+    expect(screen.getByText('50')).toBeInTheDocument();
+
+    // Verify the gists card displays correctly
+    expect(screen.getByText('Gists')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
+  });
+});
+```
+
+### User Card Test Challenge
+
+- Create a new file named `UserCard.test.tsx` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import render and screen from '@testing-library/react'
+  - Import UserCard component from '@/components/user/UserCard'
+
+- Create main describe block for 'UserCard'
+
+- Create mock data for user profile:
+
+  - avatarUrl: 'https://example.com/avatar.jpg'
+  - name: 'John Doe'
+  - bio: 'Frontend Developer'
+  - url: 'https://github.com/johndoe'
+
+- Create first test case for complete user information:
+
+  - Test name: 'renders user information correctly'
+  - Render UserCard with mock props
+  - Verify user name display
+  - Verify bio display
+  - Verify avatar image:
+    - Check presence in document
+    - Check src attribute
+    - Check alt attribute
+  - Verify follow button/link:
+    - Check href attribute
+    - Check target attribute
+    - Check rel attribute
+
+- Create second test case for missing information:
+
+  - Test name: 'renders default values when name and bio are not provided'
+  - Create modified props with empty name and bio
+  - Render UserCard with modified props
+  - Verify default name display ('Coding Addict')
+  - Verify default bio display ('Passionate about coding and technology')
+
+- Add comments for documentation:
+  - Explain purpose of test file
+  - Document mock data structure
+  - Explain test cases and their purposes
+  - Document fallback behavior testing
+
+### User Card Test
+
+`src/__tests__/UserCard.test.tsx`
+
+```tsx
+// This test file contains unit tests for the UserCard component
+// It verifies the component's ability to display user profile information
+// and handle cases where some user data is missing
+
+import { render, screen } from '@testing-library/react';
+import UserCard from '@/components/user/UserCard';
+
+describe('UserCard', () => {
+  // Mock data representing a typical GitHub user profile
+  const mockProps = {
+    avatarUrl: 'https://example.com/avatar.jpg',
+    name: 'John Doe',
+    bio: 'Frontend Developer',
+    url: 'https://github.com/johndoe',
+  };
+
+  // Test case: Verify all user information is displayed correctly
+  test('renders user information correctly', () => {
+    render(<UserCard {...mockProps} />);
+
+    // Verify user's name is displayed
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+
+    // Verify user's bio is displayed
+    expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
+
+    // Verify avatar image is present with correct attributes
+    const avatarImage = screen.getByAltText('John Doe');
+    expect(avatarImage).toBeInTheDocument();
+    expect(avatarImage).toHaveAttribute(
+      'src',
+      'https://example.com/avatar.jpg'
+    );
+
+    // Verify follow button/link has correct attributes for external navigation
+    const followLink = screen.getByRole('link', { name: /follow/i });
+    expect(followLink).toHaveAttribute('href', 'https://github.com/johndoe');
+    expect(followLink).toHaveAttribute('target', '_blank');
+    expect(followLink).toHaveAttribute('rel', 'noreferrer');
+  });
+
+  // Test case: Verify fallback values when required fields are missing
+  test('renders default values when name and bio are not provided', () => {
+    const propsWithoutNameAndBio = {
+      ...mockProps,
+      name: '',
+      bio: '',
+    };
+
+    render(<UserCard {...propsWithoutNameAndBio} />);
+
+    // Verify default name is used when name is empty
+    expect(screen.getByText('Coding Addict')).toBeInTheDocument();
+
+    // Verify default bio is used when bio is empty
+    expect(
+      screen.getByText('Passionate about coding and technology')
+    ).toBeInTheDocument();
+  });
+});
+```
+
+### Search Form Test Challenge
+
+- Create a new file named `SearchForm.test.tsx` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import render and screen from '@testing-library/react'
+  - Import userEvent from '@testing-library/user-event'
+  - Import vi from 'vitest'
+  - Import SearchForm from '@/components/form/SearchForm'
+
+- Setup mocks:
+
+  - Create mockToast function
+  - Create setUserNameMock function
+  - Mock useToast hook to return mockToast
+
+- Create main describe block for 'SearchForm'
+
+- Setup test environment:
+
+  - Create userEvent instance
+  - Add beforeEach to clear mocks
+  - Create helper function getFormElements to return input and button
+
+- Create test cases:
+
+  - Test 'renders the search form correctly':
+
+    - Render form with username 'john_doe'
+    - Verify input value
+    - Verify button presence
+
+  - Test 'displays empty input when userName is empty':
+
+    - Render form with empty username
+    - Verify empty input value
+
+  - Test 'updates input value on change':
+
+    - Render form with empty username
+    - Type 'john_doe' in input
+    - Verify input value updated
+
+  - Test 'shows toast when submitting empty input':
+
+    - Render form with empty username
+    - Click submit button
+    - Verify toast called with error message
+    - Verify setUserName not called
+
+  - Test 'calls setUserName on valid form submission':
+    - Render form with empty username
+    - Type 'jane_doe' in input
+    - Click submit button
+    - Verify setUserName called with correct value
+    - Verify toast not called
+
+- Add comments for documentation:
+  - Explain purpose of test file
+  - Document mock setup
+  - Explain helper functions
+  - Document test cases and their purposes
+
+### Search Form Test
+
+`src/__tests__/SearchForm.test.tsx`
+
+```tsx
+// This test file contains unit tests for the SearchForm component
+// It tests form functionality, input validation, and error handling
+
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
+import SearchForm from '@/components/form/SearchForm';
+
+// Mock dependencies and setup test doubles
+const mockToast = vi.fn();
+const setUserNameMock = vi.fn();
+
+// Mock the toast hook to test error notifications
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: mockToast,
+  }),
+}));
+
+describe('SearchForm', () => {
+  const user = userEvent.setup();
+
+  // Reset all mocks before each test to ensure clean state
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Helper function to get form elements used across multiple tests
+  function getFormElements() {
+    const input = screen.getByRole('textbox', { name: /search/i });
+    const button = screen.getByRole('button', { name: /search/i });
+    return { input, button };
+  }
+
+  // Test case: Verify initial form rendering with provided username
+  test('renders the search form correctly', () => {
+    render(<SearchForm userName='john_doe' setUserName={setUserNameMock} />);
+
+    const { input, button } = getFormElements();
+
+    expect(input).toHaveValue('john_doe');
+    expect(button).toBeInTheDocument();
+  });
+
+  // Test case: Verify form handling of empty username
+  test('displays empty input when userName is empty', () => {
+    render(<SearchForm userName='' setUserName={setUserNameMock} />);
+
+    const { input } = getFormElements();
+    expect(input).toHaveValue('');
+  });
+
+  // Test case: Verify input change handling
+  test('updates input value on change', async () => {
+    render(<SearchForm userName='' setUserName={setUserNameMock} />);
+
+    const { input } = getFormElements();
+
+    await user.type(input, 'john_doe');
+    expect(input).toHaveValue('john_doe');
+  });
+
+  // Test case: Verify error handling for empty submission
+  test('shows toast when submitting empty input', async () => {
+    render(<SearchForm userName='' setUserName={setUserNameMock} />);
+
+    const { button } = getFormElements();
+    await user.click(button);
+    expect(mockToast).toHaveBeenCalledWith({
+      description: 'Please enter a valid username',
+    });
+    expect(setUserNameMock).not.toHaveBeenCalled();
+  });
+
+  // Test case: Verify successful form submission
+  test('calls setUserName on valid form submission', async () => {
+    render(<SearchForm userName='' setUserName={setUserNameMock} />);
+
+    const { input, button } = getFormElements();
+
+    await user.type(input, 'jane_doe');
+    await user.click(button);
+
+    expect(setUserNameMock).toHaveBeenCalledWith('jane_doe');
+    expect(mockToast).not.toHaveBeenCalled();
+  });
+});
+```
+
+### Forked Repos Test Challenge
+
+- Create a new file named `ForkedRepos.test.tsx` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import render and screen from '@testing-library/react'
+  - Import ForkedRepos from '@/components/charts/ForkedRepos'
+  - Import mockRepositories from './utils'
+
+- Setup mocks:
+
+  - Mock UI components:
+
+    - ChartContainer: simple div wrapper
+    - ChartTooltip: div with content prop
+    - ChartTooltipContent: div with static content
+
+  - Mock recharts components:
+    - BarChart: div wrapper
+    - CartesianGrid: static div
+    - XAxis: static div
+    - YAxis: static div
+    - Bar: static div
+
+- Create main describe block for 'ForkedRepos'
+
+- Setup test environment:
+
+  - Add beforeEach to render ForkedRepos with mockRepositories
+
+- Create test cases:
+
+  - Test 'should render the ForkedRepos component':
+
+    - Verify presence of 'Forked Repos' heading
+
+  - Test 'should render the chart with correct data':
+    - Verify presence of CartesianGrid
+    - Verify presence of XAxis
+    - Verify presence of YAxis
+    - Verify presence of Bar
+    - Verify presence of Tooltip Content
+
+- Add comments for documentation:
+  - Explain purpose of test file
+  - Document mock setup for UI components
+  - Document mock setup for recharts
+  - Explain test cases and their purposes
+
+### Forked Repos Test
+
+`src/__tests__/ForkedRepos.test.tsx`
+
+```tsx
+// This test file contains unit tests for the ForkedRepos component
+// It verifies the correct rendering of the chart component and its data visualization
+
+import { render, screen } from '@testing-library/react';
+import ForkedRepos from '@/components/charts/ForkedRepos';
+import { mockRepositories } from './utils';
+
+// Mock the chart UI components to simplify testing
+// Replace complex chart containers with simple div elements
+vi.mock('@/components/ui/chart', () => {
+  return {
+    ChartContainer: ({ children }: { children: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    ChartTooltip: ({ content }: { content: React.ReactNode }) => (
+      <div>{content}</div>
+    ),
+    ChartTooltipContent: () => <div>Tooltip Content</div>,
+  };
+});
+
+// Mock the recharts library components
+// Replace actual chart elements with simple div elements for testing
+vi.mock('recharts', () => {
+  return {
+    BarChart: ({ children }: { children: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    CartesianGrid: () => <div>CartesianGrid</div>,
+    XAxis: () => <div>XAxis</div>,
+    YAxis: () => <div>YAxis</div>,
+    Bar: () => <div>Bar</div>,
+  };
+});
+
+describe('ForkedRepos', () => {
+  // Set up the component before each test
+  beforeEach(() => {
+    render(<ForkedRepos repositories={mockRepositories} />);
+  });
+
+  // Test case: Verify basic component rendering
+  test('should render the ForkedRepos component', () => {
+    expect(screen.getByText('Forked Repos')).toBeInTheDocument();
+  });
+
+  // Test case: Verify that all chart elements are present
+  test('should render the chart with correct data', () => {
+    // Check for the presence of each chart element
+    expect(screen.getByText('CartesianGrid')).toBeInTheDocument();
+    expect(screen.getByText('XAxis')).toBeInTheDocument();
+    expect(screen.getByText('YAxis')).toBeInTheDocument();
+    expect(screen.getByText('Bar')).toBeInTheDocument();
+    expect(screen.getByText('Tooltip Content')).toBeInTheDocument();
+  });
+});
+```
+
+### Handlers
+
+`src/mocks/handlers`
+
+```ts
+import { graphql, HttpResponse } from 'msw';
+import { mockRepositories } from '@/__tests__/utils';
+
+export const handlers = [
+  graphql.query('GetUser', ({ query, variables }) => {
+    console.log('Intercepted GetUser GraphQL query:', query);
+    const { login } = variables;
+    if (login === 'request-error') {
+      return HttpResponse.json({
+        errors: [{ message: 'there was an error' }],
+      });
+    }
+    if (login === 'invalid-username') {
+      return HttpResponse.json({
+        data: {
+          user: null,
+        },
+        errors: [
+          {
+            message: `Could not resolve to a User with the login of ${login}.`,
+          },
+        ],
+      });
+    }
+    return HttpResponse.json({
+      data: {
+        user: {
+          name: login,
+          avatarUrl: `https://github.com/images/${login}.jpg`,
+          bio: 'Full-stack developer passionate about open source',
+          url: `https://github.com/${login}`,
+          repositories: {
+            totalCount: 45,
+            nodes: mockRepositories,
+          },
+          followers: {
+            totalCount: 234,
+          },
+          following: {
+            totalCount: 156,
+          },
+          gists: {
+            totalCount: 27,
+          },
+        },
+      },
+    });
+  }),
+];
+```
+
+### UserProfile Test Challenge
+
+- Create a new file named `UserProfile.test.tsx` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import render and screen from '@testing-library/react'
+  - Import UserProfile from '@/components/user/UserProfile'
+  - Import client from '@/apolloClient'
+  - Import ApolloProvider from '@apollo/client'
+
+- Setup mocks for chart components:
+
+  - Mock UsedLanguages: return static div
+  - Mock PopularRepos: return static div
+  - Mock ForkedRepos: return static div
+
+- Create helper function `renderUserProfile`:
+
+  - Render UserProfile wrapped in ApolloProvider
+  - Pass userName as prop
+
+- Create main describe block for 'UserProfile'
+
+- Create test cases:
+
+  - Test 'renders UserProfile component':
+
+    - Use valid userName 'john_doe'
+    - Verify username display
+    - Verify avatar image with correct src
+    - Verify user bio display
+    - Verify GitHub profile link
+
+  - Test 'renders error message when request fails':
+
+    - Use userName 'request-error'
+    - Verify error message display
+
+  - Test 'renders error message when user not found':
+    - Use userName 'invalid-username'
+    - Verify user not found message display
+
+- Add comments for documentation:
+  - Explain purpose of test file
+  - Document mock setup for chart components
+  - Explain helper function purpose
+  - Document test cases and their purposes
+
+### UserProfile Test
+
+`src/__tests__/UserProfile.test.tsx`
+
+```tsx
+// This test file contains integration tests for the UserProfile component
+// It tests the component's ability to fetch and display user data using GraphQL,
+// as well as proper error handling for various scenarios
+
+import { render, screen } from '@testing-library/react';
+import UserProfile from '@/components/user/UserProfile';
+import client from '@/apolloClient';
+import { ApolloProvider } from '@apollo/client';
+
+// Mock chart components to simplify testing
+// Replace complex chart components with simple div elements
+vi.mock('@/components/charts/UsedLanguages', () => ({
+  default: () => <div>Used Languages</div>,
+}));
+
+vi.mock('@/components/charts/PopularRepos', () => ({
+  default: () => <div>Popular Repos</div>,
+}));
+
+vi.mock('@/components/charts/ForkedRepos', () => ({
+  default: () => <div>Forked Repos</div>,
+}));
+
+// Helper function to render the UserProfile component with Apollo Provider
+// This ensures GraphQL queries work correctly in tests
+const renderUserProfile = async (userName: string) => {
+  render(
+    <ApolloProvider client={client}>
+      <UserProfile userName={userName} />
+    </ApolloProvider>
+  );
+};
+
+describe('UserProfile', () => {
+  // Test case: Verify successful profile rendering with valid user data
+  test('renders UserProfile component', async () => {
+    const userName = 'john_doe';
+    await renderUserProfile(userName);
+
+    // Verify username is displayed
+    expect(await screen.findByText(userName)).toBeInTheDocument();
+    expect(await screen.findByText(userName)).toBeInTheDocument();
+
+    // Verify avatar image is present with correct URL
+    expect(await screen.findByRole('img')).toHaveAttribute(
+      'src',
+      `https://github.com/images/${userName}.jpg`
+    );
+
+    // Verify user bio is displayed
+    expect(
+      await screen.findByText(/full-stack developer/i)
+    ).toBeInTheDocument();
+
+    // Verify GitHub profile link is correct
+    expect(await screen.findByRole('link')).toHaveAttribute(
+      'href',
+      `https://github.com/${userName}`
+    );
+  });
+
+  // Test case: Verify error handling for failed API requests
+  test('renders error message when request fails', async () => {
+    const userName = 'request-error';
+    await renderUserProfile(userName);
+    expect(await screen.findByText('there was an error')).toBeInTheDocument();
+  });
+
+  // Test case: Verify error handling for non-existent users
+  test('renders error message when user not found', async () => {
+    const userName = 'invalid-username';
+    await renderUserProfile(userName);
+    expect(
+      await screen.findByText(/could not resolve to a user/i)
+    ).toBeInTheDocument();
+  });
+});
+```
+
+### App Test Challenge
+
+- Create a new file named `App.test.tsx` in the `__tests__` directory
+
+- Add required imports:
+
+  - Import render and screen from '@testing-library/react'
+  - Import userEvent from '@testing-library/user-event'
+  - Import ApolloProvider from '@apollo/client'
+  - Import client from '@/apolloClient'
+  - Import App from '@/App'
+
+- Setup mocks for chart components:
+
+  - Mock UsedLanguages: return static div
+  - Mock PopularRepos: return static div
+  - Mock ForkedRepos: return static div
+
+- Create helper function `renderApp`:
+
+  - Render App component wrapped in ApolloProvider
+
+- Create main describe block for 'App Integration'
+
+- Create test cases:
+
+  - Test 'should update profile when searching for a user':
+
+    - Setup userEvent
+    - Verify default user display
+    - Find search input
+    - Clear and type new username
+    - Submit form
+    - Verify new user info display
+    - Check avatar src
+    - Check profile link href
+
+  - Test 'should show error for invalid username':
+
+    - Setup userEvent
+    - Clear search input
+    - Type invalid username
+    - Submit form
+    - Verify error message display
+
+  - Test 'should show error when request fails':
+    - Setup userEvent
+    - Clear search input
+    - Type username causing request error
+    - Submit form
+    - Verify generic error message display
+
+- Add comments for documentation:
+  - Explain purpose of test file
+  - Document mock setup for chart components
+  - Explain helper function purpose
+  - Document test scenarios and expected behaviors
+
+### App Test
+
+`src/__tests__/App.test.tsx`
+
+```tsx
+// This test file contains integration tests for the main App component
+// It tests the core functionality of the application, including user search and error handling
+
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ApolloProvider } from '@apollo/client';
+import client from '@/apolloClient';
+import App from '@/App';
+
+// Mock the chart components to avoid error when rendering in simulated browser environment
+// Instead of rendering actual charts, we render simple div elements
+vi.mock('@/components/charts/UsedLanguages', () => ({
+  default: () => <div>Used Languages</div>,
+}));
+
+vi.mock('@/components/charts/PopularRepos', () => ({
+  default: () => <div>Popular Repos</div>,
+}));
+
+vi.mock('@/components/charts/ForkedRepos', () => ({
+  default: () => <div>Forked Repos</div>,
+}));
+
+// Helper function to render the App component wrapped with ApolloProvider
+// This setup is required for GraphQL functionality
+const renderApp = () => {
+  render(
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
+  );
+};
+
+describe('App Integration', () => {
+  // Test case: Verify that the profile updates when searching for a new user
+  test('should update profile when searching for a user', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    // Verify the default user is displayed initially
+    expect(await screen.findByText('quincylarson')).toBeInTheDocument();
+
+    // Find the search input field
+    const searchInput = screen.getByRole('textbox');
+
+    // Simulate user interaction: clear the input and type a new username
+    await user.clear(searchInput);
+    await user.type(searchInput, 'john_doe');
+
+    // Simulate form submission
+    const submitButton = screen.getByRole('button', { name: /search/i });
+    await user.click(submitButton);
+
+    // Verify that the new user's information is displayed
+    expect(await screen.findByText('john_doe')).toBeInTheDocument();
+
+    // Verify that the user's avatar and profile link are updated correctly
+    expect(await screen.findByRole('img')).toHaveAttribute(
+      'src',
+      'https://github.com/images/john_doe.jpg'
+    );
+    expect(await screen.findByRole('link')).toHaveAttribute(
+      'href',
+      'https://github.com/john_doe'
+    );
+  });
+
+  // Test case: Verify error handling for invalid usernames
+  test('should show error for invalid username', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    // Simulate searching for an invalid username
+    const searchInput = screen.getByRole('textbox');
+    await user.clear(searchInput);
+    await user.type(searchInput, 'invalid-username');
+
+    const submitButton = screen.getByRole('button', { name: /search/i });
+    await user.click(submitButton);
+
+    // Verify that the appropriate error message is displayed
+    expect(
+      await screen.findByText(/could not resolve to a user/i)
+    ).toBeInTheDocument();
+  });
+
+  // Test case: Verify error handling for failed API requests
+  test('should show error when request fails', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    // Simulate a failed request scenario
+    const searchInput = screen.getByRole('textbox');
+    await user.clear(searchInput);
+    await user.type(searchInput, 'request-error');
+
+    const submitButton = screen.getByRole('button', { name: /search/i });
+    await user.click(submitButton);
+
+    // Verify that the generic error message is displayed
+    expect(await screen.findByText('there was an error')).toBeInTheDocument();
+  });
+});
+```

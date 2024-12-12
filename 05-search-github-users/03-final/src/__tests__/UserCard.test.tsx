@@ -1,8 +1,12 @@
+// This test file contains unit tests for the UserCard component
+// It verifies the component's ability to display user profile information
+// and handle cases where some user data is missing
+
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
 import UserCard from '@/components/user/UserCard';
 
 describe('UserCard', () => {
+  // Mock data representing a typical GitHub user profile
   const mockProps = {
     avatarUrl: 'https://example.com/avatar.jpg',
     name: 'John Doe',
@@ -10,16 +14,17 @@ describe('UserCard', () => {
     url: 'https://github.com/johndoe',
   };
 
-  it('renders user information correctly', () => {
+  // Test case: Verify all user information is displayed correctly
+  test('renders user information correctly', () => {
     render(<UserCard {...mockProps} />);
 
-    // Check if name is rendered
+    // Verify user's name is displayed
     expect(screen.getByText('John Doe')).toBeInTheDocument();
 
-    // Check if bio is rendered
+    // Verify user's bio is displayed
     expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
 
-    // Check if avatar image is present with correct attributes
+    // Verify avatar image is present with correct attributes
     const avatarImage = screen.getByAltText('John Doe');
     expect(avatarImage).toBeInTheDocument();
     expect(avatarImage).toHaveAttribute(
@@ -27,14 +32,15 @@ describe('UserCard', () => {
       'https://example.com/avatar.jpg'
     );
 
-    // Check if follow button/link is present with correct href
+    // Verify follow button/link has correct attributes for external navigation
     const followLink = screen.getByRole('link', { name: /follow/i });
     expect(followLink).toHaveAttribute('href', 'https://github.com/johndoe');
     expect(followLink).toHaveAttribute('target', '_blank');
     expect(followLink).toHaveAttribute('rel', 'noreferrer');
   });
 
-  it('renders default values when name and bio are not provided', () => {
+  // Test case: Verify fallback values when required fields are missing
+  test('renders default values when name and bio are not provided', () => {
     const propsWithoutNameAndBio = {
       ...mockProps,
       name: '',
@@ -43,10 +49,10 @@ describe('UserCard', () => {
 
     render(<UserCard {...propsWithoutNameAndBio} />);
 
-    // Check if default name is rendered
+    // Verify default name is used when name is empty
     expect(screen.getByText('Coding Addict')).toBeInTheDocument();
 
-    // Check if default bio is rendered
+    // Verify default bio is used when bio is empty
     expect(
       screen.getByText('Passionate about coding and technology')
     ).toBeInTheDocument();

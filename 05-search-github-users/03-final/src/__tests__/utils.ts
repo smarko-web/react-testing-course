@@ -1,3 +1,4 @@
+// Import the Repository type and utility functions being tested
 import { Repository } from '../types';
 import {
   calculateMostForkedRepos,
@@ -5,7 +6,10 @@ import {
   calculatePopularLanguages,
 } from '../utils';
 
-const mockRepositories: Repository[] = [
+// Mock data representing a sample array of repository objects
+// Each repository contains basic info like name, description, stars, forks,
+// and a nested languages object with size information
+export const mockRepositories: Repository[] = [
   {
     name: 'repo1',
     description: 'test repo 1',
@@ -48,12 +52,15 @@ const mockRepositories: Repository[] = [
 ];
 
 describe('repository statistics calculations', () => {
+  // Test suite for calculateMostForkedRepos function
   describe('calculateMostForkedRepos', () => {
+    // Edge case: Test behavior with empty input
     test('should return empty array for empty input', () => {
       const result = calculateMostForkedRepos([]);
       expect(result).toEqual([]);
     });
 
+    // Main functionality test: Verify correct ranking of repositories by fork count
     test('should return top 5 most forked repositories', () => {
       const result = calculateMostForkedRepos(mockRepositories);
       expect(result).toEqual([
@@ -63,6 +70,7 @@ describe('repository statistics calculations', () => {
       ]);
     });
 
+    // Verification test: Ensure proper descending order of fork counts
     test('should sort repositories by fork count in descending order', () => {
       const result = calculateMostForkedRepos(mockRepositories);
       expect(result[0].count).toBeGreaterThanOrEqual(result[1].count);
@@ -70,12 +78,15 @@ describe('repository statistics calculations', () => {
     });
   });
 
+  // Test suite for calculateMostStarredRepos function
   describe('calculateMostStarredRepos', () => {
+    // Edge case: Test behavior with empty input
     test('should return empty array for empty input', () => {
       const result = calculateMostStarredRepos([]);
       expect(result).toEqual([]);
     });
 
+    // Main functionality test: Verify correct ranking of repositories by star count
     test('should return top 5 most starred repositories', () => {
       const result = calculateMostStarredRepos(mockRepositories);
       expect(result).toEqual([
@@ -85,6 +96,7 @@ describe('repository statistics calculations', () => {
       ]);
     });
 
+    // Verification test: Ensure proper descending order of star counts
     test('should sort repositories by star count in descending order', () => {
       const result = calculateMostStarredRepos(mockRepositories);
       expect(result[0].stars).toBeGreaterThanOrEqual(result[1].stars);
@@ -92,12 +104,15 @@ describe('repository statistics calculations', () => {
     });
   });
 
+  // Test suite for calculatePopularLanguages function
   describe('calculatePopularLanguages', () => {
+    // Edge case: Test empty input
     test('should return empty array for empty input', () => {
       const result = calculatePopularLanguages([]);
       expect(result).toEqual([]);
     });
 
+    // Edge case: Test repositories with no languages
     test('should return empty array when no languages are present', () => {
       const repoWithNoLanguages: Repository[] = [
         {
@@ -109,6 +124,7 @@ describe('repository statistics calculations', () => {
       expect(result).toEqual([]);
     });
 
+    // Main functionality test: Verify language counting and ranking
     test('should return top 5 most used languages', () => {
       const result = calculatePopularLanguages(mockRepositories);
       expect(result).toEqual([
@@ -118,6 +134,7 @@ describe('repository statistics calculations', () => {
       ]);
     });
 
+    // Specific test for accuracy of language occurrence counting
     test('should count language occurrences correctly', () => {
       const result = calculatePopularLanguages(mockRepositories);
       const jsCount = result.find(
